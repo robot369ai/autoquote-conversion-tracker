@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoQuote - Conversion Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        small {
+            color: #999;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 AutoQuote Conversion Tracker</h1>
+            <p>Update quote conversion status and track sales pipeline</p>
+        </div>
+
+        <div class="content">
+            <!-- Alerts -->
+            <div id="alertSuccess" class="alert alert-success">
+                <strong>✅ Success!</strong> <span id="successMessage"></span>
+            </div>
+            <div id="alertError" class="alert alert-error">
+                <strong>❌ Error!</strong> <span id="errorMessage"></span>
+            </div>
+            <div id="alertInfo" class="alert alert-info">
+                <strong>ℹ️ Info:</strong> <span id="infoMessage"></span>
+            </div>
+
+            <!-- Main Form -->
+            <div class="form-section">
+                <h3>Update Quote Conversion</h3>
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label>Quote ID *</label>
+                        <input type="text" id="quoteId" placeholder="550e8400-e29b-41d4-a716-446655440000" required>
+                        <small>Enter the UUID of the quote you want to update</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Conversion Status *</label>
+                        <select id="conversionStatus" required>
+                            <option value="">Select status...</option>
+                            <option value="Won">✅ Won - Client ordered</option>
+                            <option value="Lost">❌ Lost - Client declined</option>
+                            <option value="Pending">⏳ Pending - Waiting response</option>
+                            <option value="No Response">💤 No Response</option>
+                        </select>
+                    </div>
+
+                    <!-- Won Details -->
+                    <div id="wonDetails" class="hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Order Date *</label>
+                                <input type="date" id="orderDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Order Value (USD) *</label>
+                                <input type="number" id="orderValue" step="0.01" placeholder="15400.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lost Details -->
+                    <div id="lostDetails" class="hidden">
+                        <div class="form-group">
+                            <label>Loss Reason *</label>
+                            <select id="lossReason">
+                                <option value="">Select reason...</option>
+                                <option value="Price">💰 Price too high</option>
+                                <option value="Lead Time">⏰ Lead time too long</option>
+                                <option value="Competitor">🏆 Went with competitor</option>
+                                <option value="Quality">⚠️ Quality concerns</option>
+                                <option value="No Stock">📦 Out of stock</option>
+                                <option value="Client Budget">💵 Client budget constraints</option>
+                                <option value="Other">❓ Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label>Additional Notes (optional)</label>
+                        <textarea id="notes" placeholder="Any additional details about this conversion..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Updated By</label>
+                        <input type="text" id="updatedBy" placeholder="Your name" value="">
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">💾 Update Conversion</button>
+                </form>
+            </div>
+
+            <!-- Loading -->
+            <div id="submitLoading" class="loading">
+                <div class="spinner"></div>
+                <p>Updating conversion...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        // ⚠️ REPLACE WITH YOUR VALUES AFTER CLOUDFLARE SETUP
+        const WEBHOOK_URL = 'https://ggwebhook.463nts.com/webhook/conversion-tracker';
+        const API_KEY = 'YOUR_API_KEY_HERE';  // Replace after setup
+        const CF_CLIENT_ID = 'YOUR_CF_CLIENT_ID';  // Replace after Cloudflare setup
+        const CF_CLIENT_SECRET = 'YOUR_CF_CLIENT_SECRET';  // Replace after Cloudflare setup
+
+        // ============================================================
+        // DYNAMIC FORM FIELDS
+        // ============================================================
+        
+        document.getElementById('conversionStatus').addEventListener('change', (e) => {
+            const wonSection = document.getElementById('wonDetails');
+            const lostSection = document.getElementById('lostDetails');
+            
+            wonSection.classList.add('hidden');
+            lostSection.classList.add('hidden');
+            
+            if (e.target.value === 'Won') {
+                wonSection.classList.remove('hidden');
+                document.getElementById('orderDate').required = true;
+                document.getElementById('orderValue').required = true;
+                document.getElementById('lossReason').required = false;
+            } else if (e.target.value === 'Lost') {
+                lostSection.classList.remove('hidden');
+                document.getElementById('lossReason').required = true;
+                document.getElementById('orderDate').required = false;
+                document.getElementById('orderValue').required = false;
+            } else {
+                document.getElementById('orderDate').required = false;
+                document.getElementById('orderValue').required = false;
+                document.getElementById('lossReason').required = false;
+            }
+        });
+
+        // ============================================================
+        // FORM SUBMISSION
+        // ============================================================
+        
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const quoteId = document.getElementById('quoteId').value.trim();
+            const conversionStatus = document.getElementById('conversionStatus').value;
+            const orderDate = document.getElementById('orderDate').value;
+            const orderValue = document.getElementById('orderValue').value;
+            const lossReason = document.getElementById('lossReason').value;
+            const notes = document.getElementById('notes').value;
+            const updatedBy = document.getElementById('updatedBy').value;
+            
+            // Validation
+            if (!quoteId) {
+                showAlert('error', 'Quote ID is required');
+                return;
+            }
+            
+            if (!conversionStatus) {
+                showAlert('error', 'Conversion status is required');
+                return;
+            }
+            
+            if (conversionStatus === 'Won' && (!orderDate || !orderValue)) {
+                showAlert('error', 'Order date and value are required for Won status');
+                return;
+            }
+            
+            if (conversionStatus === 'Lost' && !lossReason) {
+                showAlert('error', 'Loss reason is required for Lost status');
+                return;
+            }
+            
+            const data = {
+                quote_id: quoteId,
+                conversion_status: conversionStatus,
+                order_date: orderDate || null,
+                order_value: orderValue ? parseFloat(orderValue) : null,
+                loss_reason: lossReason || null,
+                notes: notes || null,
+                updated_by: updatedBy || 'Web Form'
+            };
+            
+            await submitConversion(data);
+        });
+
+        // ============================================================
+        // SUBMIT TO API
+        // ============================================================
+        
+        async function submitConversion(data) {
+            showLoading('submitLoading');
+            hideAllAlerts();
+            document.getElementById('submitBtn').disabled = true;
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': API_KEY,
+                        'CF-Access-Client-Id': CF_CLIENT_ID,
+                        'CF-Access-Client-Secret': CF_CLIENT_SECRET
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                hideLoading('submitLoading');
+                document.getElementById('submitBtn').disabled = false;
+                
+                if (result.success) {
+                    const clientInfo = result.data.client;
+                    const message = `Quote updated successfully! Client: ${clientInfo.company_name || clientInfo.email}. Conversion rate: ${clientInfo.conversion_rate || 'N/A'}`;
+                    showAlert('success', message);
+                    
+                    // Reset form
+                    document.getElementById('updateForm').reset();
+                    document.getElementById('wonDetails').classList.add('hidden');
+                    document.getElementById('lostDetails').classList.add('hidden');
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    showAlert('error', result.message || 'Failed to update conversion');
+                }
+            } catch (error) {
+                hideLoading('submitLoading');
+                document.getElementById('submitBtn').disabled = false;
+                console.error('Network error:', error);
+                showAlert('error', 'Network error: Could not connect to the server. Please check your connection and try again.');
+            }
+        }
+
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        
+        function showAlert(type, message) {
+            hideAllAlerts();
+            
+            const alertId = type === 'success' ? 'alertSuccess' : 
+                           type === 'error' ? 'alertError' : 'alertInfo';
+            const messageId = type === 'success' ? 'successMessage' :
+                             type === 'error' ? 'errorMessage' : 'infoMessage';
+            
+            document.getElementById(messageId).textContent = message;
+            document.getElementById(alertId).classList.add('show');
+        }
+
+        function hideAllAlerts() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.classList.remove('show');
+            });
+        }
+
+        function showLoading(loadingId) {
+            document.getElementById(loadingId).classList.add('show');
+        }
+
+        function hideLoading(loadingId) {
+            document.getElementById(loadingId).classList.remove('show');
+        }
+
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('orderDate').value = today;
+        
+        // Check configuration
+        if (API_KEY === 'YOUR_API_KEY_HERE' || CF_CLIENT_ID === 'YOUR_CF_CLIENT_ID') {
+            showAlert('info', 'Configuration needed: Please update API credentials in the HTML file');
+        }
+    </script>
+</body>
+</html>
