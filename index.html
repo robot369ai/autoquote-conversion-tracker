@@ -622,14 +622,14 @@
 
     <script>
         // ============================================================
-        // CONFIGURATION
+        // CONFIGURATION - SECURED BY CLOUDFLARE ACCESS
         // ============================================================
         
-        const SEARCH_URL = 'https://laswebhook.lasrfq.com/webhook/search-quotes';
-        const UPDATE_URL = 'https://laswebhook.lasrfq.com/webhook/conversion-tracker';
-        const API_KEY = '38efda92-190e-4a3f-b020-f31253556b04';  // Replace with your actual API key
-        const CF_CLIENT_ID = 'ffa69a84933cec1e4c64cab56fbc943d.access';  // Replace with Cloudflare Client ID
-        const CF_CLIENT_SECRET = '1f58eea6de67eb9ea24dcaed8753d7cd542c8d9d5350d28f3a0307c64e1bd61a';  // Replace with Cloudflare Client Secret
+        // No API keys or secrets needed - Cloudflare Access handles authentication
+        // Authentication is done via session cookies after email OTP login
+        
+        const SEARCH_URL = 'https://ggwebhook.463nts.com/webhook/search-quotes';
+        const UPDATE_URL = 'https://ggwebhook.463nts.com/webhook/conversion-tracker';
 
         // ============================================================
         // STATE
@@ -681,11 +681,7 @@
                 
                 const response = await fetch(url, {
                     method: 'GET',
-                    headers: {
-                        'X-API-Key': API_KEY,
-                        'CF-Access-Client-Id': CF_CLIENT_ID,
-                        'CF-Access-Client-Secret': CF_CLIENT_SECRET
-                    }
+                    credentials: 'include'  // Include session cookies for Cloudflare Access
                 });
 
                 const result = await response.json();
@@ -701,7 +697,7 @@
             } catch (error) {
                 hideLoading('searchLoading');
                 console.error('Search error:', error);
-                showAlert('error', 'Network error: Could not perform search');
+                showAlert('error', 'Network error: Could not perform search. Please check your connection.');
             }
         }
 
@@ -902,11 +898,9 @@
                 const response = await fetch(UPDATE_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': API_KEY,
-                        'CF-Access-Client-Id': CF_CLIENT_ID,
-                        'CF-Access-Client-Secret': CF_CLIENT_SECRET
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',  // Include session cookies for Cloudflare Access
                     body: JSON.stringify(data)
                 });
                 
@@ -932,7 +926,7 @@
                     // Scroll to top
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    // Optionally re-run search to show updated status
+                    // Suggest re-search
                     setTimeout(() => {
                         showAlert('info', 'Re-run your search to see the updated status');
                     }, 2000);
@@ -943,7 +937,7 @@
                 hideLoading('submitLoading');
                 document.getElementById('submitBtn').disabled = false;
                 console.error('Update error:', error);
-                showAlert('error', 'Network error: Could not update conversion');
+                showAlert('error', 'Network error: Could not update conversion. Please try again.');
             }
         }
 
@@ -985,11 +979,6 @@
         // Set default date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('orderDate').value = today;
-        
-        // Check configuration
-        if (API_KEY === 'YOUR_API_KEY_HERE') {
-            showAlert('info', '⚠️ Configuration needed: Please update API credentials in the HTML file');
-        }
     </script>
 </body>
 </html>
